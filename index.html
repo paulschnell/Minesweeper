@@ -6,6 +6,7 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>Minesweeeeeeeeeeper</title>
+	<link rel="icon" href="img/flag.png">
 	<style>
 		body {
 			width: 960px;
@@ -85,8 +86,8 @@
 			line-height: 110px;
 		}
 
-		#blur {
-			/* filter: blur(3px); */
+		.blur {
+			filter: blur(3px);;
 		}
 	</style>
 </head>
@@ -97,15 +98,13 @@
 		<div id="time">00:00</div>
 		<div id="mines">10<img src="img/flag.png"></div>
 	</div>
-	<div id="blur">
-		<canvas id="drawing" width="722" height="722"></canvas>
-	</div>
+	<canvas id="drawing" width="722" height="722"></canvas>
 
 	<div id="endscreen">
 		<h1>You won.</h1>
 	</div>
 
-	<button id="reset">Reset</button>
+	<button id="reset" onclick="reset()">Reset</button>
 
 	<script src="script.js"></script>
 </body>

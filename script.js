@@ -6,11 +6,13 @@ const flagCount = document.getElementById("mines");
 const endscreen = document.getElementById("endscreen");
 const blur = document.getElementById("blur");
 
+const resetButton = document.getElementById("reset");
+
 const dimension = 24;
 const gutterSize = 2;
 const cellSize = Math.trunc((canvas.clientWidth - 2) / dimension) - gutterSize;
 
-let running = true;
+let running;
 
 const flagImg = new Image();
 flagImg.src = "img/flag.png";
@@ -18,21 +20,15 @@ flagImg.src = "img/flag.png";
 const mineImg = new Image();
 mineImg.src = "img/mine.png";
 
-let boardGenerated = false;
+let boardGenerated;
 
-// const finalNumMines = Math.round((99 / (16 * 30)) * (dimension * dimension));
-const finalNumMines = 1;
-let flags = finalNumMines;
-let numMines = finalNumMines;
+const finalNumMines = Math.round((99 / (16 * 30)) * (dimension * dimension));
+let flags;
+let numMines;
 
-let board = [];
-for (let i = 0; i < dimension; i++) {
-	board.push([]);
-	for (let j = 0; j < dimension; j++) {
-		board[i].push([0, 0]);
-	}
-}
-drawBoard();
+let board;
+
+setup();
 
 /**
  * [type, vision]
@@ -44,6 +40,21 @@ drawBoard();
  * not revealed: 0
  * flag: -1
  */
+
+function setup() {
+	running = true;
+	flags = finalNumMines;
+	numMines = finalNumMines;
+
+	board = [];
+	for (let i = 0; i < dimension; i++) {
+		board.push([]);
+		for (let j = 0; j < dimension; j++) {
+			board[i].push([0, 0]);
+		}
+	}
+	drawBoard();
+}
 
 function fillCell(x, y, color) {
 	ctx.fillStyle = color;
@@ -160,19 +171,60 @@ canvas.addEventListener("click", (event) => {
 
 	let [x, y] = getBoardPos(event);
 
-	if (!boardGenerated) {
-		// let tabu = [
-		// 	[x, y],
-		// 	[x - 1, y - 1],
-		// 	[x, y - 1],
-		// 	[x + 1, y - 1],
-		// 	[x - 1, y],
-		// 	[x + 1, y],
-		// 	[x, y + 1],
-		// 	[x - 1, y + 1],
-		// 	[x + 1, y + 1],
-		// ];
+	generateBoard(x, y);
 
+	if (board[x][y][0] == -1) {
+		flags--;
+		endscreen.style.visibility = "visible";
+		canvas.classList.add("blur");
+
+		endscreen.querySelector("h1").innerText = "You lost.";
+
+		running = false;
+	}
+
+	if (board[x][y][1] == -1) {
+		flags++;
+	}
+	board[x][y][1] = 1;
+
+	checkForWin();
+	drawBoard();
+});
+
+canvas.addEventListener("auxclick", (event) => {
+	let [x, y] = getBoardPos(event);
+	generateBoard(x, y);
+	if (board[x][y][1] == 0 && flags > 0) {
+		board[x][y][1] = -1;
+		flags--;
+		drawBoard();
+	}
+	checkForWin();
+});
+
+function checkForWin() {
+	let found = false;
+	for (let x = 0; x < board.length && !found; x++) {
+		for (let y = 0; y < board.length && !found; y++) {
+			if (board[x][y][0] == -1 && board[x][y][1] != -1) {
+				found = true;
+			}
+		}
+	}
+	if (!found) {
+		endscreen.style.visibility = "visible";
+		canvas.classList.add("blur");
+
+
+		endscreen.querySelector("h1").innerText = "You won.";
+
+		running = false;
+	}
+}
+
+function generateBoard(x, y) {
+	if (!boardGenerated) {
 		let tabuX = [x, x - 1, x + 1];
 		let tabuY = [y, y - 1, y + 1];
 
@@ -203,52 +255,24 @@ canvas.addEventListener("click", (event) => {
 		}
 		boardGenerated = true;
 	}
+}
 
-	board[x][y][1] = 1;
-	drawBoard();
-
-	if (board[x][y][0] == -1) {
-		flags--;
-		endscreen.style.visibility = "visible";
-		blur.style.filter = "blur(3px)";
-
-		endscreen.querySelector("h1").innerText = "You lost.";
-
-		running = false;
-	}
-
-	if (board[x][y][1] == -1) {
-		flags++;
-	}
-
-	checkForWin();
-});
-
-canvas.addEventListener("auxclick", (event) => {
-	let [x, y] = getBoardPos(event);
-	if (board[x][y][1] == 0 && flags > 0) {
-		board[x][y][1] = -1;
-		flags--;
-		drawBoard();
-	}
-	checkForWin();
-});
-
-function checkForWin() {
-	let found = false;
-	for (let x = 0; x < board.length || found; x++) {
-		for (let y = 0; y < board.length || found; y++) {
-			if (board[x][y][0] == -1 && board[x][y][1] != -1) {
-				found = true;
-			}
+function reset() {
+	boardGenerated = false;
+	running = true;
+	board = [];
+	for (let i = 0; i < dimension; i++) {
+		board.push([]);
+		for (let j = 0; j < dimension; j++) {
+			board[i].push([0, 0]);
 		}
 	}
-	if (!found) {
-		endscreen.style.visibility = "visible";
-		blur.style.filter = "blur(3px)";
+	endscreen.style.visibility = "hidden";
+	canvas.classList.remove("blur");
 
-		endscreen.querySelector("h1").innerText = "You won.";
+	endscreen.querySelector("h1").innerText = "";
 
-		running = false;
-	}
+	flags = finalNumMines;
+
+	drawBoard();
 }
